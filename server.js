@@ -21,7 +21,15 @@ const ASSISTANT_ID = process.env.ASSISTANT_ID || 'asst_u3CYocbChFJ74LdmICzvC5qB'
 app.use(cors()); 
 app.use(express.json()); 
 
-// 4. Health Check Endpoint (ADD THIS!)
+// 4. Health Check Endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    message: 'GPT Assistant Backend is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
@@ -32,8 +40,14 @@ app.get('/health', (req, res) => {
 
 // 5. Endpoint สำหรับการแชท
 app.post('/chat', async (req, res) => {
+  console.log('Received chat request:', req.body);
+  
   let currentThreadId = req.body.threadId || null; 
   const { message } = req.body;
+
+  if (!message) {
+    return res.status(400).json({ error: 'Message is required' });
+  }
 
   try {
     // 5.1 จัดการ Thread
@@ -75,7 +89,10 @@ app.post('/chat', async (req, res) => {
 
   } catch (error) {
     console.error('Error processing chat request:', error);
-    res.status(500).json({ error: 'Failed to communicate with GPT Assistant' });
+    res.status(500).json({ 
+      error: 'Failed to communicate with GPT Assistant',
+      details: error.message 
+    });
   }
 });
 
